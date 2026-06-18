@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>QuickTrip Executive</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',Tahoma,sans-serif;
+}
+
+body{
+background:#f8fafc;
+color:#111827;
+}
+
+header{
+background:#111827;
+padding:30px 20px;
+text-align:center;
+}
+
+.logo{
+font-size:32px;
+font-weight:700;
+letter-spacing:4px;
+color:#C8A96B;
+}
+
+.subtitle{
+color:#ffffff;
+font-size:13px;
+letter-spacing:2px;
+margin-top:8px;
+text-transform:uppercase;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:white;
+border-radius:24px;
+padding:25px;
+box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.title{
+font-size:24px;
+font-weight:600;
+margin-bottom:10px;
+}
+
+.description{
+color:#6B7280;
+margin-bottom:20px;
+line-height:1.6;
+}
+
+input{
+width:100%;
+padding:16px;
+margin-bottom:12px;
+border:1px solid #E5E7EB;
+border-radius:14px;
+font-size:16px;
+}
+
+input:focus{
+outline:none;
+border-color:#C8A96B;
+}
+
+.btn{
+width:100%;
+padding:16px;
+border:none;
+border-radius:14px;
+background:#111827;
+color:white;
+font-size:16px;
+font-weight:600;
+cursor:pointer;
+}
+
+.btn:hover{
+opacity:.95;
+}
+
+#map{
+height:450px;
+border-radius:20px;
+margin-top:20px;
+overflow:hidden;
+}
+
+.price-box{
+background:#111827;
+padding:25px;
+border-radius:20px;
+text-align:center;
+margin-top:20px;
+}
+
+.price-box small{
+color:#ffffff;
+font-size:14px;
+}
+
+.price{
+font-size:52px;
+font-weight:bold;
+color:#C8A96B;
+}
+
+.info{
+margin-top:20px;
+}
+
+.info-row{
+display:flex;
+justify-content:space-between;
+padding:12px 0;
+border-bottom:1px solid #f0f0f0;
+}
+
+.notice{
+margin-top:20px;
+background:#FAF7F2;
+border:1px solid #E5D3A3;
+padding:18px;
+border-radius:16px;
+line-height:1.8;
+}
+
+.whatsapp{
+background:#25D366;
+margin-top:15px;
+}
+
+footer{
+text-align:center;
+padding:25px;
+color:#6B7280;
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+QUICKTRIP EXECUTIVE
+</div>
+
+<div class="subtitle">
+Traslados Privados • Aeropuerto • Corporativo
+</div>
+
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<div class="title">
+Reserva tu servicio
+</div>
+
+<div class="description">
+Ingrese dirección y distrito para una mejor precisión.
+<br>
+También puede seleccionar origen y destino directamente en el mapa.
+</div>
+
+<input
+type="text"
+id="origen"
+placeholder="Origen (dirección y distrito)">
+
+<input
+type="text"
+id="destino"
+placeholder="Destino (dirección y distrito)">
+
+<button
+class="btn"
+onclick="buscarDirecciones()">
+Calcular tarifa
+</button>
+
+<div id="map"></div>
+
+<div class="price-box">
+
+<small>Tarifa estimada</small>
+
+<div class="price">
+S/ <span id="tarifa">0.00</span>
+</div>
+
+</div>
+
+<div class="info">
+
+<div class="info-row">
+<span>Distancia estimada</span>
+<span id="distancia">0 km</span>
+</div>
+
+<div class="info-row">
+<span>Adelanto requerido (35%)</span>
+<span>S/ <span id="adelanto">0.00</span></span>
+</div>
+
+<div class="info-row">
+<span>Saldo final</span>
+<span>S/ <span id="saldo">0.00</span></span>
+</div>
+
+</div>
+
+<div class="notice">
+
+<b>Servicio Ejecutivo</b>
+
+<br>
+
+✔ Traslados al Aeropuerto
+
+<br>
+
+✔ Atención personalizada
+
+<br>
+
+✔ Lima Metropolitana y Callao
+
+<br>
+
+✔ Reserva con adelanto del 35%
+
+<br><br>
+
+📱 WhatsApp: 979746019
+
+<br>
+
+💳 Yape / Plin: 979746019
+
+</div>
+
+<button
+class="btn whatsapp"
+onclick="reservar()">
+
+Reservar por WhatsApp
+
+</button>
+
+</div>
+
+</div>
+
+<footer>
+
+QUICKTRIP EXECUTIVE © 2026
+
+<br>
+
+Servicio privado en Lima Metropolitana y Callao
+
+</footer>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+const TARIFA_POR_KM = 3.50;
+
+const limaBounds = [
+[-12.45,-77.30],
+[-11.75,-76.70]
+];
+
+const map = L.map('map',{
+maxBounds:limaBounds,
+maxBoundsViscosity:1.0
+}).setView([-12.0464,-77.0428],11);
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+).addTo(map);
+
+let origenMarker = null;
+let destinoMarker = null;
+
+let origenLatLng = null;
+let destinoLatLng = null;
+
+let distanciaKm = 0;
+let costo = 0;
+let adelanto = 0;
+let saldo = 0;
+
+let clickCount = 0;
+
+async function buscarLugar(nombre){
+
+try{
+
+const url =
+`https://nominatim.openstreetmap.org/search?format=json&countrycodes=pe&limit=1&q=${encodeURIComponent(nombre+", Lima, Peru")}`;
+
+const response = await fetch(url);
+
+const data = await response.json();
+
+if(data.length===0){
+return null;
+}
+
+return{
+lat:parseFloat(data[0].lat),
+lng:parseFloat(data[0].lon)
+};
+
+}catch(error){
+
+return null;
+
+}
+
+}
+
+async function buscarDirecciones(){
+
+const origenTexto =
+document.getElementById("origen").value;
+
+const destinoTexto =
+document.getElementById("destino").value;
+
+if(!origenTexto || !destinoTexto){
+
+alert("Ingrese origen y destino.");
+
+return;
+
+}
+
+const origen =
+await buscarLugar(origenTexto);
+
+const destino =
+await buscarLugar(destinoTexto);
+
+if(!origen || !destino){
+
+alert("No se encontraron las ubicaciones.");
+
+return;
+
+}
+
+crearMarcadores(
+[origen.lat,origen.lng],
+[destino.lat,destino.lng]
+);
+
+}
+
+function crearMarcadores(origen,destino){
+
+if(origenMarker){
+map.removeLayer(origenMarker);
+}
+
+if(destinoMarker){
+map.removeLayer(destinoMarker);
+}
+
+origenMarker =
+L.marker(origen,{draggable:true})
+.addTo(map)
+.bindPopup("Origen");
+
+destinoMarker =
+L.marker(destino,{draggable:true})
+.addTo(map)
+.bindPopup("Destino");
+
+origenMarker.on("dragend",recalcular);
+destinoMarker.on("dragend",recalcular);
+
+origenLatLng = origenMarker.getLatLng();
+destinoLatLng = destinoMarker.getLatLng();
+
+const grupo =
+L.featureGroup([origenMarker,destinoMarker]);
+
+map.fitBounds(grupo.getBounds());
+
+calcular();
+
+}
+
+map.on("click",function(e){
+
+if(clickCount===0){
+
+if(origenMarker){
+map.removeLayer(origenMarker);
+}
+
+origenMarker =
+L.marker(e.latlng,{draggable:true})
+.addTo(map)
+.bindPopup("Origen");
+
+origenMarker.on("dragend",recalcular);
+
+origenLatLng = e.latlng;
+
+clickCount++;
+
+return;
+
+}
+
+if(clickCount===1){
+
+if(destinoMarker){
+map.removeLayer(destinoMarker);
+}
+
+destinoMarker =
+L.marker(e.latlng,{draggable:true})
+.addTo(map)
+.bindPopup("Destino");
+
+destinoMarker.on("dragend",recalcular);
+
+destinoLatLng = e.latlng;
+
+clickCount = 0;
+
+calcular();
+
+}
+
+});
+
+function recalcular(){
+
+if(!origenMarker || !destinoMarker){
+return;
+}
+
+origenLatLng = origenMarker.getLatLng();
+destinoLatLng = destinoMarker.getLatLng();
+
+calcular();
+
+}
+
+function calcular(){
+
+if(!origenLatLng || !destinoLatLng){
+return;
+}
+
+const metros =
+map.distance(
+origenLatLng,
+destinoLatLng
+);
+
+distanciaKm = metros / 1000;
+
+costo = distanciaKm * TARIFA_POR_KM;
+
+if(costo < 10){
+costo = 10;
+}
+
+adelanto = costo * 0.35;
+saldo = costo - adelanto;
+
+document.getElementById("distancia").innerHTML =
+distanciaKm.toFixed(2)+" km";
+
+document.getElementById("tarifa").innerHTML =
+costo.toFixed(2);
+
+document.getElementById("adelanto").innerHTML =
+adelanto.toFixed(2);
+
+document.getElementById("saldo").innerHTML =
+saldo.toFixed(2);
+
+}
+
+function reservar(){
+
+if(costo===0){
+
+alert("Primero calcule la tarifa.");
+
+return;
+
+}
+
+const mensaje =
+
+`Hola QuickTrip Executive.
+
+Deseo solicitar una reserva.
+
+Origen: ${document.getElementById("origen").value}
+
+Destino: ${document.getElementById("destino").value}
+
+Distancia estimada: ${distanciaKm.toFixed(2)} km
+
+Tarifa estimada: S/${costo.toFixed(2)}
+
+Adelanto requerido: S/${adelanto.toFixed(2)}
+
+Agradeceré instrucciones para confirmar el servicio.`;
+
+window.open(
+`https://wa.me/51979746019?text=${encodeURIComponent(mensaje)}`
+);
+
+}
+
+</script>
+
+</body>
+</html>
